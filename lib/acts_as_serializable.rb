@@ -23,14 +23,13 @@ module ActsAsSerializable
 
   module InstanceMethods
     
-    def initialize(*attr)
-      super(*attr)
+    def initialize
+      super
       update_attribute(self.class.serialized_field, Hash.new)
     end
     
     
     def method_missing(method, *args, &block)
-      p self.class.to_s
       begin
         super
       rescue NoMethodError    
