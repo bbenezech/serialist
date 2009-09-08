@@ -6,41 +6,46 @@ module Serialist
   end
 
   module ClassMethods
-    
-    attr_accessor :serialization_field
+    attr_accessor :serialist_options
+    attr_accessor :serialist_field
 
-    def serialist(field)
-      
-      @serialization_field = field
+    def serialist(serialist_field, serialist_options)
+      @serialist_field ||= serialist_field
+      @serialist_options ||= []
+      @serialist_options = (@serialist_options + serialist_options).uniq
+      serialize(@serialist_field, Hash)
 
-      include ActsAsSerializable::InstanceMethods
+      @serialist_options.each do |field|
+        puts "INCLUDE=#{self.instance_methods.include?(field.to_s)} FOR #{field.to_s}"
+        
+        raise Exception.new("Serialist ERROR: #{self.class.name} already has a #{field} method!") if self.instance_methods.include?(field.to_s)
+        
+        define_method field.to_s do 
+          return nil unless self.send(serialist_field)
+          self.send(serialist_field)[field]
+        end
+        
+        define_method field.to_s + "?" do |*param|
+          return false unless self.send(serialist_field)
+          if param.empty?
+            ![nil, false, "false", :false].include?(self.send(serialist_field)[field])
+          else
+            self.send(serialist_field)[field] == param.first
+          end
+        end
+        
+        define_method field.to_s + "=" do |param|
+          update_attribute(serialist_field, Hash.new) unless self.send(serialist_field)
+          self.send(serialist_field)[field] = param
+        end
+        
+      end
     end
+    
     def inherited(subclass)
       super
-      subclass.instance_variable_set("@serialization_field", @serialization_field)
-    end
-  end
-
-  module InstanceMethods
-    
-    def initialize
-      super
-      update_attribute(self.class.serialization_field, Hash.new)
-    end
-
-    def method_missing(method, *args, &block)
-      begin
-        super
-      rescue NoMethodError    
-        case method.to_s.last
-        when "?"
-          self.send(self.class.serialization_field)[method.to_s[0..-2].to_sym] == (args && args.first || "true")
-        when "="
-          self.send(self.class.serialization_field)[method.to_s[0..-2].to_sym] = args.first if args
-        else
-          self.send(self.class.serialization_field)[method]
-        end
-      end
+      subclass.instance_variable_set("@serialist_field", @serialist_field)
+      subclass.instance_variable_set("@serialist_options", @serialist_options)
     end
   end
 end
