@@ -1,0 +1,70 @@
+gem 'serialist'
+
+generate :scaffold, "article title:string"
+generate :serialist, "SerialistMigration", "Article", "slug"
+
+rake "db:migrate"
+
+file "app/models/article.rb", <<-END
+  class Article < ActiveRecord::Base
+    serialist :slug, [:required_serialized_value, :another_serialized_value]
+    validates_presence_of :title
+    validates_presence_of :required_serialized_value
+  end
+END
+
+file "app/views/articles/edit.html.erb", <<-END
+<h1>Editing article</h1>
+<%= render :partial => "form" %>
+<%= link_to 'Show', @article %> |
+<%= link_to 'Back', articles_path %>
+END
+
+file "app/views/articles/new.html.erb", <<-END
+<h1>New article</h1>
+<%= render :partial => "form" %>
+<%= link_to 'Back', articles_path %>
+END
+
+file "app/views/articles/_form.html.erb", <<-END
+<% form_for(@article) do |f| %>
+  <%= f.error_messages %>
+  <p>
+    <%= f.label :title %><br />
+    <%= f.text_field :title %>
+  </p>
+  <p>
+    <%= f.label :required_serialized_value %><br />
+    <%= f.text_field :required_serialized_value %>
+  </p>
+  <p>
+    <%= f.label :another_serialized_value %><br />
+    <%= f.text_field :another_serialized_value %>
+  </p>
+  <p>
+    <%= f.submit 'Send' %>
+  </p>
+<% end %>
+END
+
+file "app/views/articles/show.html.erb", <<-END
+<p>
+  <b>Title:</b>
+  <%=h @article.title %>
+</p>
+<p>
+  <b>Required serialized value:</b>
+  <%=h @article.required_serialized_value %>
+</p>
+<p>
+  <b>Another serialized value:</b>
+  <%=h @article.another_serialized_value %>
+</p>
+
+<%= link_to 'Edit', edit_article_path(@article) %> |
+<%= link_to 'Back', articles_path %>
+END
+
+run "rm app/views/layouts/articles.html.erb"
+run "rm public/index.html"
+route "map.root :controller => 'articles'"

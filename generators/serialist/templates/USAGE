@@ -1,0 +1,3 @@
+script/generate serialist MigrationName MyModel my_serialist_attribute
+  
+This will create a migration to use serialist on MyModel with :my_serialist_attribute

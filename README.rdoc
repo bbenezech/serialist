@@ -1,1 +1,85 @@
+= Serialist
+
+Serialize anything. Why waste time migrating your table for yet another dumb attribute you won't search on?
+Add one serializable field in your table, and let serialist do the rest.
+
+=== Before :
+
+  class Article
+    serialize :preferences
+  end
+  
+  >> a = Article.new
+  >> a.preferences = {}
+  >> a.preferences[:key] = "value"
+  >> a.preferences[:key]
+  => "value"
+  
+=== After : 
+
+  class Article
+    serialist :preferences, [:key, :other_key, :yet_another_key]
+  end
+
+  >> a = Article.new
+  >> a.key = "value"
+  >> a.key
+  => "value"
+
+== Install the gem!
+
+  $ sudo gem install serialist
+
+== Try the demo!
+  
+  $ sudo gem install sqlite3-ruby
+  $ rails -m http://gist.github.com/183689.txt serialist-example
+  $ cd serialist-example
+  $ ./script/server
+  $ GoTo localhost:3000 and create an article
+  
+== Serialist comes in 2 flavors:
+
+=== Specific declaration (safe, use define_method)
+
+  serialist :my_serializer_attribute, [:foo, :bar]
+
+Allows you to serialize only the desired keys. ex : 
+
+  $ ./script/console
+  >> a = Article.new
+  => #<Article id: nil, title: nil, created_at: nil, updated_at: nil, slug: nil>
+  >> a.foo = "hello"
+  => "hello"
+  >> a.taz = "hello"
+  => NoMethodError: undefined method `taz=' ...
+  >> a
+  => #<Article id: XX, title: nil, created_at: "..", updated_at: "..", slug: {:foo=>"hello"}>
+
+=== Catch-all with method_missing
+
+  you should probably choose to load serialist after your other plugins/gems, because ActiveRecord won't fire NoMethodError anymore on Serialisted models, and some plugin may want to catch it to implement their own auto-magic (=== find_all_by_title_and_description kind of magic)
+
+    # in your model. my_serializer_attribute is the one you specify in the migration
+
+    serialist :my_serializer_attribute              
+
+  Allows you to serialize anything. ex : 
+
+    $ ./script/console
+    >> a = Article.new
+    => #<Article id: nil, title: nil, created_at: nil, updated_at: nil, slug: nil>
+    >> a.foo = "hello"
+    => "hello"
+    >> a.foo?("hello")
+    => true
+    >> a.foo
+    => "hello"
+    >> a
+    => #<Article id: XX, title: nil, created_at: "..", updated_at: "..", slug: {:foo=>"hello"}>
+
+== Word of caution:
+
+Other than the specific notice about not using method1 with Serialist loaded before other ActiveRecord "automagicians" plugins, watch out for conflict with existing attributes and methods!
+
 Copyright (c) 2009 Benoit Bénézech, released under the MIT license
