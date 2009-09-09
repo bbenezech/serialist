@@ -5,7 +5,7 @@ Add one serializable field in your table, and let serialist do the rest.
 
 === Before :
 
-  class Article
+  class Article < ActiveRecord::Base
     serialize :preferences
   end
   
@@ -17,7 +17,7 @@ Add one serializable field in your table, and let serialist do the rest.
   
 === After : 
 
-  class Article
+  class Article < ActiveRecord::Base
     serialist :preferences, [:key, :other_key, :yet_another_key]
   end
 
@@ -37,6 +37,24 @@ Add one serializable field in your table, and let serialist do the rest.
   $ cd serialist-example
   $ ./script/server
   $ GoTo localhost:3000 and create an article
+  
+== Or generate a migration for your existing programm
+
+./script/generate serialist SerialistMigration MyModel my_serialist_attribute
+Ex : 
+
+  ./script/generate serialist SerialistMigration Article slug
+  
+Then hook Serialist into your ActiveRecord model : 
+
+  serialist :my_serialist_attribute, [:foo, :bar]
+  # OR
+  serialist :my_serialist_attribute
+  # See below
+  
+  # Add validation as you normally would :
+  validates_presence_of :bar
+  # etc.
   
 == Serialist comes in 2 flavors:
 
@@ -58,7 +76,7 @@ Allows you to serialize only the desired keys. ex :
 
 === Catch-all with method_missing
 
-you should probably choose to load serialist after your other plugins/gems, because ActiveRecord won't fire NoMethodError anymore on Serialisted models, and some plugin may want to catch it to implement their own auto-magic (=== find_all_by_title_and_description kind of magic)
+You should probably choose to load serialist after your other plugins/gems, because ActiveRecord won't fire NoMethodError anymore on Serialisted models, and some plugin may want to catch it to implement their own auto-magic (=== find_all_by_title_and_description kind of magic)
 
   # in your model. my_serializer_attribute is the one you specify in the migration
 
