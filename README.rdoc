@@ -58,25 +58,25 @@ Allows you to serialize only the desired keys. ex :
 
 === Catch-all with method_missing
 
-  you should probably choose to load serialist after your other plugins/gems, because ActiveRecord won't fire NoMethodError anymore on Serialisted models, and some plugin may want to catch it to implement their own auto-magic (=== find_all_by_title_and_description kind of magic)
+you should probably choose to load serialist after your other plugins/gems, because ActiveRecord won't fire NoMethodError anymore on Serialisted models, and some plugin may want to catch it to implement their own auto-magic (=== find_all_by_title_and_description kind of magic)
 
-    # in your model. my_serializer_attribute is the one you specify in the migration
+  # in your model. my_serializer_attribute is the one you specify in the migration
 
-    serialist :my_serializer_attribute              
+  serialist :my_serializer_attribute              
 
-  Allows you to serialize anything. ex : 
+Allows you to serialize anything. ex : 
 
-    $ ./script/console
-    >> a = Article.new
-    => #<Article id: nil, title: nil, created_at: nil, updated_at: nil, slug: nil>
-    >> a.foo = "hello"
-    => "hello"
-    >> a.foo?("hello")
-    => true
-    >> a.foo
-    => "hello"
-    >> a
-    => #<Article id: XX, title: nil, created_at: "..", updated_at: "..", slug: {:foo=>"hello"}>
+  $ ./script/console
+  >> a = Article.new
+  => #<Article id: nil, title: nil, created_at: nil, updated_at: nil, slug: nil>
+  >> a.foo = "hello"
+  => "hello"
+  >> a.foo?("hello")
+  => true
+  >> a.foo
+  => "hello"
+  >> a
+  => #<Article id: XX, title: nil, created_at: "..", updated_at: "..", slug: {:foo=>"hello"}>
 
 == Word of caution:
 
