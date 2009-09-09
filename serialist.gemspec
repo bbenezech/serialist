@@ -5,7 +5,7 @@
 
 Gem::Specification.new do |s|
   s.name = %q{serialist}
-  s.version = "0.2.0"
+  s.version = "0.3.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Benoit B\303\251n\303\251zech"]
@@ -28,6 +28,7 @@ Gem::Specification.new do |s|
      "install.rb",
      "installation-template.txt",
      "lib/serialist.rb",
+     "lib/serialist/serialist_module.rb",
      "rails/init.rb",
      "serialist.gemspec",
      "tasks/acts_as_serializable_tasks.rake",
