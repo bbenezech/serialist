@@ -3,7 +3,7 @@
 Serialize anything. Why waste time migrating your table for yet another dumb attribute you won't search on?
 Add one serializable field in your table, and let serialist do the rest.
 
-=== Before :
+=== Before!
 
   class Article < ActiveRecord::Base
     serialize :preferences
@@ -15,7 +15,7 @@ Add one serializable field in your table, and let serialist do the rest.
   >> a.preferences[:key]
   => "value"
   
-=== After : 
+=== After!
 
   class Article < ActiveRecord::Base
     serialist :preferences, [:key, :other_key, :yet_another_key]
@@ -33,17 +33,19 @@ Add one serializable field in your table, and let serialist do the rest.
 == Try the demo!
   
   $ sudo gem install sqlite3-ruby
-  $ rails -m http://gist.github.com/183689.txt serialist-example
+  $ rails -m http://github.com/bbenezech/serialist/raw/master/installation-template.txt serialist-example
   $ cd serialist-example
   $ ./script/server
-  $ GoTo localhost:3000 and create an article
+  open localhost:3000 and create an article
   
-== Or generate a migration for your existing programm
+== Or simply generate a migration for your existing rails app!
 
 ./script/generate serialist SerialistMigration MyModel my_serialist_attribute
+
 Ex : 
 
   ./script/generate serialist SerialistMigration Article slug
+  rake db:migrate
   
 Then hook Serialist into your ActiveRecord model : 
 
@@ -56,19 +58,25 @@ Then hook Serialist into your ActiveRecord model :
   validates_presence_of :bar
   # etc.
   
-== Serialist comes in 2 flavors:
+== Serialist comes in TWO flavors!
 
 === Specific declaration (safe, use define_method)
 
-  serialist :my_serializer_attribute, [:foo, :bar]
+  serialist :slug, [:foo, :bar]
 
 Allows you to serialize only the desired keys. ex : 
 
   $ ./script/console
   >> a = Article.new
   => #<Article id: nil, title: nil, created_at: nil, updated_at: nil, slug: nil>
+  >> a.foo?
+  => false
+  >> a.foo
+  => nil
   >> a.foo = "hello"
   => "hello"
+  >> a.foo?
+  => true
   >> a.taz = "hello"
   => NoMethodError: undefined method `taz=' ...
   >> a
@@ -76,28 +84,40 @@ Allows you to serialize only the desired keys. ex :
 
 === Catch-all with method_missing
 
-You should probably choose to load serialist after your other plugins/gems, because ActiveRecord won't fire NoMethodError anymore on Serialisted models, and some plugin may want to catch it to implement their own auto-magic (=== find_all_by_title_and_description kind of magic)
+You should probably choose to load serialist after your other plugins/gems, because ActiveRecord won't fire NoMethodError anymore on Serialisted models, and some plugin may want to catch it to implement their own auto-magic (aka find_all_by_title_and_description magic)
 
   # in your model. my_serializer_attribute is the one you specify in the migration
 
-  serialist :my_serializer_attribute              
+  serialist :slug
 
 Allows you to serialize anything. ex : 
 
   $ ./script/console
   >> a = Article.new
   => #<Article id: nil, title: nil, created_at: nil, updated_at: nil, slug: nil>
+  >> a.foo
+  => nil
+  >> a.foo?
+  => false
   >> a.foo = "hello"
   => "hello"
   >> a.foo?("hello")
   => true
+  >> a.foo?
+  => true
   >> a.foo
   => "hello"
+  >> a.baz?
+  => false
+  >> a.baz
+  => nil
   >> a
   => #<Article id: XX, title: nil, created_at: "..", updated_at: "..", slug: {:foo=>"hello"}>
 
-== Word of caution:
+== Beware!
 
-Other than the specific notice about not using method1 with Serialist loaded before other ActiveRecord "automagicians" plugins, watch out for conflict with existing attributes and methods!
+# Don't use method#2 with Serialist loaded before other ActiveRecord "automagicians" plugins
+# Watch out for conflict with existing attributes and methods!
+# And of course don't serialize attributes you may want to search on, or index on, or use with any other database related stuff.
 
 Copyright (c) 2009 Benoit Bénézech, released under the MIT license
