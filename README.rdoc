@@ -123,3 +123,5 @@ Allows you to serialize anything. ex :
 # And of course don't serialize attributes you may want to search on, or index on, or use with any other database related stuff.
 
 Copyright (c) 2009 Benoit Bénézech, released under the MIT license
+
+http://rubyonrails.org/images/rails.png
