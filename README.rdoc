@@ -117,7 +117,9 @@ Allows you to serialize anything. ex :
 == Beware!
 
 # Don't use method#2 with Serialist loaded before other ActiveRecord "automagicians" plugins
+
 # Watch out for conflict with existing attributes and methods!
+
 # And of course don't serialize attributes you may want to search on, or index on, or use with any other database related stuff.
 
 Copyright (c) 2009 Benoit Bénézech, released under the MIT license
