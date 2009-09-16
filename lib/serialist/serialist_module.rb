@@ -1,4 +1,3 @@
-# ActsAsSerializable
 module Serialist
   
   def self.included(base)
@@ -10,8 +9,6 @@ module Serialist
     attr_accessor :serialist_field
 
     def serialist(serialist_field, serialist_options = [])
-      
-      
       @serialist_field ||= serialist_field
       @serialist_options ||= []
       @serialist_options = (@serialist_options + serialist_options).uniq
@@ -49,6 +46,22 @@ module Serialist
   end
   
   module InstanceMethods
+    
+    def attributes=(new_attributes, guard_protected_attributes = true)
+      return if new_attributes.nil?
+      attributes = new_attributes.dup
+      attributes.stringify_keys!
+      attributes.each do |k, v|
+        unless k.include?("(") || respond_to?(:"#{k}=")
+          self.class.send(:define_method, :"#{k}=") do |param|
+            update_attribute(self.class.serialist_field, Hash.new) unless self.send(self.class.serialist_field)
+            self.send(self.class.serialist_field)[k] = param
+          end
+        end
+      end
+      super
+    end
+    
     def method_missing(method, *args, &block)
       begin
         super
