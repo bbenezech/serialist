@@ -69,14 +69,13 @@ module Serialist
         slug = self.send(self.class.serialist_field)
         case method.to_s.last
         when "?"
-          slug && slug[method.to_s[0..-2].to_sym] == (args && args.first || "true")
           if args.empty?
             slug && ![nil, false, "false", :false].include?(slug[method.to_s[0..-2].to_sym])
           else
             slug && (slug[method.to_s[0..-2].to_sym] == args.first)
           end
         when "="
-          self.send(slug.to_s + "=", Hash.new) unless slug
+          self.send(self.class.serialist_field.to_s + "=", Hash.new) unless slug
           self.send(self.class.serialist_field)[method.to_s[0..-2].to_sym] = args.first
         else
           slug && slug[method.to_sym]

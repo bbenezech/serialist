@@ -5,11 +5,11 @@
 
 Gem::Specification.new do |s|
   s.name = %q{serialist}
-  s.version = "0.5.0"
+  s.version = "0.5.2"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Benoit B\303\251n\303\251zech"]
-  s.date = %q{2009-09-16}
+  s.date = %q{2009-09-17}
   s.description = %q{Serialize any data, set and fetch it like any column attributes}
   s.email = %q{benoit.benezech@gmail.com}
   s.extra_rdoc_files = [
