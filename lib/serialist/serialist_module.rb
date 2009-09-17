@@ -25,13 +25,13 @@ module Serialist
           define_method field.to_s + "?" do |*param|
             return false unless (slug = self.send(serialist_field))
             if param.empty?
-              ![nil, false, "false", :false].include?(slug[field])
+              ![nil, false, "false", :false].include?(slug[field.to_sym])
             else
               slug[field.to_sym] == param.first
             end
           end
           define_method field.to_s + "=" do |param|
-            update_attribute(serialist_field, Hash.new) unless self.send(serialist_field)
+            self.send(serialist_field.to_s + "=", Hash.new) unless self.send(serialist_field)
             self.send(serialist_field)[field.to_sym] = param
           end
         end
@@ -54,7 +54,7 @@ module Serialist
       attributes.each do |k, v|
         unless k.include?("(") || respond_to?(:"#{k}=")
           self.class.send(:define_method, :"#{k}=") do |param|
-            update_attribute(self.class.serialist_field, Hash.new) unless self.send(self.class.serialist_field)
+            self.send(self.class.serialist_field.to_s + "=", Hash.new) unless self.send(self.class.serialist_field)
             self.send(self.class.serialist_field)[k.to_sym] = param
           end
         end
@@ -76,7 +76,7 @@ module Serialist
             slug && (slug[method.to_s[0..-2].to_sym] == args.first)
           end
         when "="
-          update_attribute(self.class.serialist_field, Hash.new) unless slug
+          self.send(slug.to_s + "=", Hash.new) unless slug
           self.send(self.class.serialist_field)[method.to_s[0..-2].to_sym] = args.first
         else
           slug && slug[method.to_sym]
