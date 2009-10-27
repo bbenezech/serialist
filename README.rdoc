@@ -1,12 +1,15 @@
 = Serialist
 
 Serialize anything. Why waste time migrating your table for yet another dumb attribute you won't search on?
-Add one serializable field in your table, and let serialist do the rest.
+Add one serialization field in your table, and let serialist do the rest : validate and mass_assign all your serialized stuff, transparently.
+Now in version 1.0.0, fully tested.
 
 === Before!
 
   class Article < ActiveRecord::Base
     serialize :preferences
+    # impossible...
+    # validates_presence_of :key
   end
   
   >> a = Article.new
@@ -14,17 +17,25 @@ Add one serializable field in your table, and let serialist do the rest.
   >> a.preferences[:key] = "value"
   >> a.preferences[:key]
   => "value"
+  >> Article.create({:preferences => {:key => "value"}})
+  => #<Article id: ##, preferences: {:key=>"value"}>
   
 === After!
 
   class Article < ActiveRecord::Base
     serialist :preferences, [:key, :other_key, :yet_another_key]
+    validates_presence_of :key
   end
 
   >> a = Article.new
   >> a.key = "value"
   >> a.key
   => "value"
+  >> Article.create!
+  => "key cannot be blank"
+  >> Article.create({:key => "value"})
+  => #<Article id: ##, preferences: {:key=>"value"}>
+  
 
 == Install the gem!
 
@@ -63,10 +74,13 @@ Then hook Serialist into your ActiveRecord model :
 === Specific declaration (safe, use define_method)
 
   serialist :slug, [:foo, :bar]
+  validates_presence_of :foo
 
 Allows you to serialize only the desired keys. ex : 
 
   $ ./script/console
+  >> Article.create!
+  => 'foo cannot be blank'
   >> a = Article.new
   => #<Article id: nil, title: nil, created_at: nil, updated_at: nil, slug: nil>
   >> a.foo?
@@ -89,10 +103,13 @@ You should probably choose to load serialist after your other plugins/gems, beca
   # in your model. my_serializer_attribute is the one you specify in the migration
 
   serialist :slug
+  validates_presence_of :foo
 
 Allows you to serialize anything. ex : 
 
   $ ./script/console
+  >> Article.create!
+  => 'foo cannot be blank'
   >> a = Article.new
   => #<Article id: nil, title: nil, created_at: nil, updated_at: nil, slug: nil>
   >> a.foo
@@ -118,9 +135,9 @@ Allows you to serialize anything. ex :
 
 # Don't use method#2 with Serialist loaded before other ActiveRecord "automagicians" plugins
 
-# Watch out for conflict with existing attributes and methods!
-
 # And of course don't serialize attributes you may want to search on, or index on, or use with any other database related stuff.
+
+# run the tests with your version of ActiveRecord (tested with rails 2.3.4) (go to the unpacked gem and simply run 'rake', watch for errors. Send a bug report if any, specifying you ActiveRecord or rails version, thanks)
 
 Copyright (c) 2009 Benoit Bénézech, released under the MIT license
 

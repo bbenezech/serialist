@@ -18,6 +18,8 @@ module Serialist
         include Serialist::InstanceMethods
       else
         @serialist_options.each do |field|
+          cols = self.columns.map{|c|c.name.to_s}
+          raise Exception.new("Column #{field} already exist for #{self.name}") if cols.include?(field.to_s)
           define_method field.to_s do 
             return nil unless (slug = self.send(serialist_field))
             slug[field.to_sym]
@@ -46,16 +48,18 @@ module Serialist
   end
   
   module InstanceMethods
-    
     def attributes=(new_attributes, guard_protected_attributes = true)
-      return if new_attributes.nil?
+      return if new_attributes.nil? 
       attributes = new_attributes.dup
       attributes.stringify_keys!
       attributes.each do |k, v|
-        unless k.include?("(") || respond_to?(:"#{k}=")
+        unless k.include?("(") || respond_to?(:"#{k}")
           self.class.send(:define_method, :"#{k}=") do |param|
             self.send(self.class.serialist_field.to_s + "=", Hash.new) unless self.send(self.class.serialist_field)
             self.send(self.class.serialist_field)[k.to_sym] = param
+          end
+          self.class.send(:define_method, :"#{k}") do 
+            self.send(self.class.serialist_field)[k.to_sym]
           end
         end
       end
