@@ -86,6 +86,13 @@ class SerialistTest < Test::Unit::TestCase
     @serialisted.save
     @serialisted.reload
     assert_equal @serialisted.foo, "foo2"
+    @serialisted.baz = "baz"
+    @serialisted.save
+    @serialisted.reload
+    assert_equal @serialisted.baz, "baz"
+    assert_equal @serialisted.baz?, true
+    assert_equal @serialisted.baz?("baz"), true
+    assert_equal @serialisted.baz?("bar"), false
     @serialisted.bar = nil
     @serialisted.save
     @serialisted.reload

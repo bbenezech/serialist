@@ -20,23 +20,28 @@ module Serialist
         @serialist_options.each do |field|
           cols = self.columns.map{|c|c.name.to_s}
           raise Exception.new("Column #{field} already exist for #{self.name}") if cols.include?(field.to_s)
-          define_method field.to_s do 
-            return nil unless (slug = self.send(serialist_field))
-            slug[field.to_sym]
-          end
-          define_method field.to_s + "?" do |*param|
-            return false unless (slug = self.send(serialist_field))
-            if param.empty?
-              ![nil, false, "false", :false].include?(slug[field.to_sym])
-            else
-              slug[field.to_sym] == param.first
-            end
-          end
-          define_method field.to_s + "=" do |param|
-            self.send(serialist_field.to_s + "=", Hash.new) unless self.send(serialist_field)
-            self.send(serialist_field)[field.to_sym] = param
-          end
+          define_access_methods(field)
         end
+      end
+    end
+    
+    def define_access_methods(field)
+      serialist_field = self.serialist_field
+      define_method field.to_s do 
+        return nil unless (slug = self.send(serialist_field))
+        slug[field.to_sym]
+      end
+      define_method field.to_s + "?" do |*param|
+        return false unless (slug = self.send(serialist_field))
+        if param.empty?
+          ![nil, false, "false", :false, "0"].include?(slug[field.to_sym])
+        else
+          slug[field.to_sym] == param.first
+        end
+      end
+      define_method field.to_s + "=" do |param|
+        self.send(serialist_field.to_s + "=", Hash.new) unless self.send(serialist_field)
+        self.send(serialist_field)[field.to_sym] = param
       end
     end
     
@@ -53,14 +58,8 @@ module Serialist
       attributes = new_attributes.dup
       attributes.stringify_keys!
       attributes.each do |k, v|
-        unless k.include?("(") || respond_to?(:"#{k}")
-          self.class.send(:define_method, :"#{k}=") do |param|
-            self.send(self.class.serialist_field.to_s + "=", Hash.new) unless self.send(self.class.serialist_field)
-            self.send(self.class.serialist_field)[k.to_sym] = param
-          end
-          self.class.send(:define_method, :"#{k}") do 
-            self.send(self.class.serialist_field)[k.to_sym]
-          end
+        unless k.include?("(") || respond_to?(k)
+          self.class.define_access_methods(k)
         end
       end
       super
@@ -70,20 +69,8 @@ module Serialist
       begin
         super
       rescue NoMethodError
-        slug = self.send(self.class.serialist_field)
-        case method.to_s.last
-        when "?"
-          if args.empty?
-            slug && ![nil, false, "false", :false].include?(slug[method.to_s[0..-2].to_sym])
-          else
-            slug && (slug[method.to_s[0..-2].to_sym] == args.first)
-          end
-        when "="
-          self.send(self.class.serialist_field.to_s + "=", Hash.new) unless slug
-          self.send(self.class.serialist_field)[method.to_s[0..-2].to_sym] = args.first
-        else
-          slug && slug[method.to_sym]
-        end
+        self.class.define_access_methods(method.to_s.chomp("=").chomp("?"))
+        self.send(method, *args, &block)
       end
     end
   end

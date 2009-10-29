@@ -69,12 +69,15 @@ Then hook Serialist into your ActiveRecord model :
   validates_presence_of :bar
   # etc.
   
-== Serialist comes in TWO flavors!
+== Serialist comes in 2 flavors!
 
-=== Specific declaration (safe, use define_method)
+=== Declarative, use define_method as your model load.
 
-  serialist :slug, [:foo, :bar]
-  validates_presence_of :foo
+  class Article
+    serialist :slug, [:foo, :bar]
+    validates_presence_of :foo
+  end
+  
 
 Allows you to serialize only the desired keys. ex : 
 
@@ -96,14 +99,12 @@ Allows you to serialize only the desired keys. ex :
   >> a
   => #<Article id: XX, title: nil, created_at: "..", updated_at: "..", slug: {:foo=>"hello"}>
 
-=== Catch-all with method_missing
+=== Catch-all, use define_method lazily at access time (hooked in your model method_missing)
 
-You should probably choose to load serialist after your other plugins/gems, because ActiveRecord won't fire NoMethodError anymore on Serialisted models, and some plugin may want to catch it to implement their own auto-magic (aka find_all_by_title_and_description magic)
-
-  # in your model. my_serializer_attribute is the one you specify in the migration
-
-  serialist :slug
-  validates_presence_of :foo
+  class Article
+    serialist :slug
+    validates_presence_of :foo
+  end
 
 Allows you to serialize anything. ex : 
 
@@ -131,7 +132,7 @@ Allows you to serialize anything. ex :
   >> a
   => #<Article id: XX, title: nil, created_at: "..", updated_at: "..", slug: {:foo=>"hello"}>
 
-== Beware!
+=== But be aware...
 
 # Don't use method#2 with Serialist loaded before other ActiveRecord "automagicians" plugins
 
