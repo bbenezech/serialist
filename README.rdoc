@@ -39,15 +39,11 @@ Now in version 1.0.0, fully tested.
 
 == Install the gem!
 
-  $ sudo gem install serialist
+  sudo gem install serialist
 
 == Try the demo!
-  
-  $ sudo gem install sqlite3-ruby
-  $ rails -m http://github.com/bbenezech/serialist/raw/master/installation-template.txt serialist-example
-  $ cd serialist-example
-  $ ./script/server
-  open localhost:3000 and create an article
+
+  rails -m http://github.com/bbenezech/serialist/raw/master/installation-template.txt serialist-example
   
 == Or simply generate a migration for your existing rails app!
 
@@ -81,7 +77,7 @@ Then hook Serialist into your ActiveRecord model :
 
 Allows you to serialize only the desired keys. ex : 
 
-  $ ./script/console
+  ./script/console
   >> Article.create!
   => 'foo cannot be blank'
   >> a = Article.new
@@ -108,7 +104,7 @@ Allows you to serialize only the desired keys. ex :
 
 Allows you to serialize anything. ex : 
 
-  $ ./script/console
+  ./script/console
   >> Article.create!
   => 'foo cannot be blank'
   >> a = Article.new
