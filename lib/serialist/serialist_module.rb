@@ -20,28 +20,35 @@ module Serialist
         @serialist_options.each do |field|
           cols = self.columns.map{|c|c.name.to_s}
           raise Exception.new("Column #{field} already exist for #{self.name}") if cols.include?(field.to_s)
-          define_access_methods(field)
+          define_access_method(field.to_s)
+          define_access_method(field.to_s + "?")
+          define_access_method(field.to_s + "=")
         end
       end
     end
     
-    def define_access_methods(field)
+    def define_access_method(method)
       serialist_field = self.serialist_field
-      define_method field.to_s do 
-        return nil unless (slug = self.send(serialist_field))
-        slug[field.to_sym]
-      end
-      define_method field.to_s + "?" do |*param|
-        return false unless (slug = self.send(serialist_field))
-        if param.empty?
-          ![nil, false, "false", :false, "0"].include?(slug[field.to_sym])
-        else
-          slug[field.to_sym] == param.first
+      case method.last
+      when "?"
+        define_method method do |*param|
+          return false unless (slug = self.send(serialist_field))
+          if param.empty?
+            ![nil, false, "false", :false, "0"].include?(slug[method[0..-2].to_sym])
+          else
+            slug[method[0..-2].to_sym] == param.first
+          end
         end
-      end
-      define_method field.to_s + "=" do |param|
-        self.send(serialist_field.to_s + "=", Hash.new) unless self.send(serialist_field)
-        self.send(serialist_field)[field.to_sym] = param
+      when "="
+        define_method method do |param|
+          self.send(serialist_field.to_s + "=", Hash.new) unless self.send(serialist_field)
+          self.send(serialist_field)[method[0..-2].to_sym] = param
+        end
+      else
+        define_method method do 
+          return nil unless (slug = self.send(serialist_field))
+          slug[method.to_sym]
+        end
       end
     end
     
@@ -59,7 +66,8 @@ module Serialist
       attributes.stringify_keys!
       attributes.each do |k, v|
         unless k.include?("(") || respond_to?(k)
-          self.class.define_access_methods(k)
+          self.class.define_access_method(k + "=")  # for mass-affectation
+          self.class.define_access_method(k)        # for validation
         end
       end
       super
@@ -69,7 +77,7 @@ module Serialist
       begin
         super
       rescue NoMethodError
-        self.class.define_access_methods(method.to_s.chomp("=").chomp("?"))
+        self.class.define_access_method(method.to_s)
         self.send(method, *args, &block)
       end
     end
