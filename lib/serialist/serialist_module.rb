@@ -66,7 +66,7 @@ module Serialist
       attributes.stringify_keys!
       attributes.each do |k, v|
         unless k.include?("(") || respond_to?(k)
-          self.class.define_access_method(k + "=")  # for mass-affectation
+          self.class.define_access_method(k + "=") unless respond_to?("#{k}=") # for mass-affectation
           self.class.define_access_method(k)        # for validation
         end
       end
