@@ -47,7 +47,7 @@ module Serialist
       else
         define_method method do 
           return nil unless (slug = self.send(serialist_field))
-          slug[method.to_sym]
+          method.ends_with?("_id") ? slug[method.to_sym].to_i : slug[method.to_sym]
         end
       end
     end
