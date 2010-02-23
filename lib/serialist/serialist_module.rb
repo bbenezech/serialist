@@ -15,7 +15,21 @@ module Serialist
       serialize(@serialist_field, Hash)
       
       if serialist_options.empty?
+        # catch-all mode
         include Serialist::InstanceMethods
+        class_eval do
+          # alias method chaining
+          unless method_defined? :method_missing
+            def method_missing(meth, *args, &block); super; end
+          end
+          alias_method :old_method_missing, :method_missing
+          alias_method :method_missing, :serialist_method_missing
+          unless method_defined?(:attributes=)
+            def attributes=(meth, *args, &block); super; end
+          end
+          alias_method :old_attributes=, :attributes=
+          alias_method :attributes=, :serialist_attributes=
+        end
       else
         @serialist_options.each do |field|
           cols = self.columns.map{|c|c.name.to_s}
@@ -60,7 +74,9 @@ module Serialist
   end
   
   module InstanceMethods
-    def attributes=(new_attributes, guard_protected_attributes = true)
+    
+    # needed because AR checks with respond_to when doing mass assignment.
+    def serialist_attributes=(new_attributes, guard_protected_attributes = true)
       return if new_attributes.nil? 
       attributes = new_attributes.dup
       attributes.stringify_keys!
@@ -70,12 +86,12 @@ module Serialist
           self.class.define_access_method(k) unless respond_to?(k)              # for validation
         end
       end
-      super
+      self.send(:old_attributes=, new_attributes, guard_protected_attributes = true)
     end
     
-    def method_missing(method, *args, &block)
+    def serialist_method_missing(method, *args, &block)
       begin
-        super
+        old_method_missing(method, *args, &block)
       rescue NoMethodError
         self.class.define_access_method(method.to_s)
         self.send(method, *args, &block)

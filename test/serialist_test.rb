@@ -1,8 +1,8 @@
 require 'test/unit'
  
 require 'rubygems'
-gem 'activerecord'
 require 'active_record'
+require 'active_support'
 RAILS_ROOT = File.dirname(__FILE__)
 $: << File.join(File.dirname(__FILE__), '../lib') 
 require File.join(File.dirname(__FILE__), '../init')
@@ -174,10 +174,7 @@ class SerialistTest < Test::Unit::TestCase
   end
   
   def test_lazily_serialist_should_not_try_to_override_existing_methods_and_columns
-    assert_raise ActiveRecord::UnknownAttributeError do
-      LazyRegressionTestClass.create!({:foo => "foo", :bar => "bar", :title => "hoho", :title_fun => "haha"})
-    end
-    @serialisted = LazyRegressionTestClass.create!({:foo => "foo", :bar => "bar", :title => "hoho"})
+    @serialisted = LazyRegressionTestClass.create!({ :foo => "foo", :bar => "bar", :title => "hoho" })
     assert_nil @serialisted.slug[:title]
     assert_equal @serialisted.title, "hoho"
     assert_equal @serialisted.title_fun, "ohoh"
