@@ -9,10 +9,18 @@ module Serialist
     attr_accessor :serialist_field
 
     def serialist(serialist_field, serialist_options = [])
-      @serialist_field ||= serialist_field
-      @serialist_options ||= []
-      @serialist_options = (@serialist_options + serialist_options).uniq
+      @serialist_field = serialist_field
+      @serialist_options = serialist_options
       serialize(@serialist_field, Hash)
+      include Serialist::DirtyAdditions
+      class_eval do
+        unless method_defined?(:changes)
+          def changes(meth, *args, &block); super; end
+        end
+        alias_method :old_changes, :changes
+        alias_method :changes, :serialist_changes
+      end
+      
       if serialist_options.empty?
         # catch-all mode
         include Serialist::InstanceMethods
@@ -55,8 +63,10 @@ module Serialist
       when "="
         define_method method do |param|
           self.send(serialist_field.to_s + "=", Hash.new) unless self.send(serialist_field)
-          self.send(serialist_field)[method[0..-2].to_sym] = param
-          write_attribute(serialist_field.to_s, self.send(serialist_field)) # needed to get dirty
+          # needed to get dirty
+          slug = self.send(serialist_field).clone
+          slug[method[0..-2].to_sym] = param
+          write_attribute(serialist_field.to_s, slug)
         end
       else
         define_method method do 
@@ -96,6 +106,19 @@ module Serialist
         self.class.define_access_method(method.to_s)
         self.send(method, *args, &block)
       end
+    end
+  end
+  
+  module DirtyAdditions
+    def serialist_changes
+      full_changes = self.old_changes
+      unless (slug = full_changes.delete(self.class.serialist_field.to_s)).blank?
+        ((slug[0].try(:keys) || []) + (slug[1].try(:keys) || [])).uniq.each do |serialized_key| 
+          attr_change = [(slug[0].try(:fetch, serialized_key) rescue nil), (slug[1].try(:fetch, serialized_key) rescue nil)]
+          full_changes[serialized_key.to_s] = attr_change if attr_change[0] != attr_change[1]
+        end
+      end
+      full_changes
     end
   end
 end

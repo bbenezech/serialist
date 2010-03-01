@@ -87,6 +87,7 @@ class SerialistTest < Test::Unit::TestCase
     @serialisted.reload
     assert_equal @serialisted.foo, "foo2"
     @serialisted.baz = "baz"
+    assert_equal @serialisted.changes, {"baz"=>[nil, "baz"]}
     @serialisted.save
     @serialisted.reload
     assert_equal @serialisted.baz, "baz"
@@ -106,9 +107,11 @@ class SerialistTest < Test::Unit::TestCase
     assert_equal @serialisted.foo, "foo"
     assert_equal @serialisted.foo?, true
     @serialisted.foo = "foo2"
+    assert_equal @serialisted.changes, {"foo"=>["foo", "foo2"]}
     @serialisted.save
     @serialisted.reload
     assert_equal @serialisted.foo, "foo2"
+    assert_equal @serialisted.changes, {}
     @serialisted.bar = nil
     @serialisted.save
     @serialisted.reload
