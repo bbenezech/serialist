@@ -13,7 +13,6 @@ module Serialist
       @serialist_options ||= []
       @serialist_options = (@serialist_options + serialist_options).uniq
       serialize(@serialist_field, Hash)
-      
       if serialist_options.empty?
         # catch-all mode
         include Serialist::InstanceMethods
@@ -57,6 +56,7 @@ module Serialist
         define_method method do |param|
           self.send(serialist_field.to_s + "=", Hash.new) unless self.send(serialist_field)
           self.send(serialist_field)[method[0..-2].to_sym] = param
+          write_attribute(serialist_field.to_s, self.send(serialist_field)) # needed to get dirty
         end
       else
         define_method method do 
